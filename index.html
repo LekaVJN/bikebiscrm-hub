@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BikeBis Hub v8.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .admin-only { display: none !important; }
+        .admin-active .admin-only { display: block !important; }
+        .part-row { border-left: 4px solid #10b981; padding: 10px; margin-bottom: 10px; background: #f8fafc; border-radius: 0 8px 8px 0; }
+        .income-row { border-left: 4px solid #f59e0b; padding: 10px; margin-bottom: 10px; background: #fffbeb; border-radius: 0 8px 8px 0; }
+        .hidden-field { display: none; }
+        .warranty-active { background-color: #fff1f2 !important; border-top-color: #e11d48 !important; }
+    </style>
+</head>
+<body class="bg-slate-200 min-h-screen pb-10 font-sans text-slate-900">
+
+    <div class="bg-indigo-950 text-white p-4 shadow-xl mb-4 text-center border-b-4 border-indigo-500 relative">
+        <button onclick="addToHomeScreen()" class="absolute left-2 top-4 bg-indigo-800 hover:bg-indigo-700 text-[8px] font-black uppercase px-2 py-2 rounded-lg border border-indigo-400">📲 На экран</button>
+        <h1 class="text-xl font-bold uppercase tracking-tight">🚲 BikeBis Hub</h1>
+        <p class="text-[9px] opacity-60 uppercase tracking-widest font-black italic text-indigo-300">Ultimate Edition v8.0</p>
+    </div>
+
+    <div class="max-w-md mx-auto px-4">
+        <div class="flex gap-2 mb-6 justify-center">
+            <button onclick="showTab('repair')" class="flex-1 bg-white py-4 rounded-xl shadow-md text-[10px] font-black uppercase border-b-4 border-emerald-500 active:scale-95 transition-all">🛠 Ремонт</button>
+            <button onclick="showTab('expense')" class="flex-1 bg-white py-4 rounded-xl shadow-md text-[10px] font-black uppercase border-b-4 border-indigo-500 active:scale-95 transition-all">💰 Расход</button>
+            <button id="incomeTabBtn" onclick="showTab('income')" class="admin-only flex-1 bg-white py-4 rounded-xl shadow-md text-[10px] font-black uppercase border-b-4 border-amber-500 italic text-amber-600">📦 Приход</button>
+            <button id="adminLockBtn" onclick="toggleAdmin()" class="bg-slate-300 px-4 py-4 rounded-xl shadow-md text-[10px] font-black border-b-4 border-slate-400 uppercase">🔓</button>
+        </div>
+
+        <div id="repair" class="tab-content active bg-white p-6 rounded-2xl shadow-2xl border-t-8 border-emerald-600 transition-colors">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-lg font-black text-emerald-950 uppercase italic text-emerald-700">📝 Ремонт</h2>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <span class="text-[10px] font-black uppercase text-rose-600 tracking-tighter">Гарантийный</span>
+                    <input type="checkbox" name="is_warranty" id="warrantyCheck" onchange="toggleWarranty()" class="w-5 h-5 accent-rose-600">
+                </label>
+            </div>
+
+            <form onsubmit="handleSubmit(event, 'repair')">
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Дата *</label>
+                        <input type="date" name="report_date" class="w-full p-2 bg-slate-50 border rounded font-bold text-xs date-picker">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic text-rose-500">Фамилия мастера</label>
+                        <input type="text" name="master_fio" placeholder="(для гарантии)" class="w-full p-2 bg-slate-50 border rounded font-bold text-xs outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Город *</label>
+                        <select name="city" id="repCity" class="w-full p-2 bg-slate-50 border rounded font-bold text-[10px]" required>
+                            <option value="">Выбрать...</option>
+                            <option>Кемерово</option><option>Новосибирск</option><option>Красноярск</option><option>Барнаул</option><option>Омск</option><option>Самара</option><option>Томск</option><option>Нижневартовск</option><option>Саранск</option><option>Псков</option><option>Брянск</option><option>Ярославль</option><option>Пенза</option><option>Санкт-Петербург</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic text-indigo-500">Компания</label>
+                        <select name="company" id="repComp" class="w-full p-2 bg-slate-50 border rounded font-bold text-[10px]">
+                            <option value="">(для безнала)</option>
+                            <option>Асн</option><option>ПКР</option><option>Лидер</option><option>Альянс</option><option>2 колеса</option><option>АйСиЭль</option><option>Меридиан</option><option>Гепард</option><option>Деливери Стафф</option><option>Деливери Солюшенс</option><option>Туворк</option><option>Эдем</option><option>Домком</option><option>Аккорд</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <input type="text" name="courier_info" placeholder="Курьер / № Велосипеда" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 font-bold text-sm outline-none">
+                
+                <div id="partsList"></div>
+                <button type="button" onclick="addPartRow()" class="w-full py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-black rounded-lg uppercase mb-4">+ Добавить деталь/работу</button>
+                
+                <div class="bg-indigo-900 p-3 rounded-lg mb-4 flex justify-between items-center text-white shadow-lg" id="totalBlock">
+                    <span class="text-[10px] font-bold uppercase">Итого к оплате:</span>
+                    <div class="text-xl font-black"><span id="total_sum_display">0</span> ₽</div>
+                    <input type="hidden" name="total_sum" id="total_sum_hidden" value="0">
+                </div>
+
+                <div id="payTypeBlock">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Способ расчета *</label>
+                    <select name="pay_type" id="payTypeSelect" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 font-bold text-sm">
+                        <option>QR-код</option><option>Наличные</option><option>Безнал (Счет)</option><option>Перевод на карту</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mb-6">
+                    <div class="text-center">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-1 italic">Фото Акта</label>
+                        <input type="file" name="file_act" class="text-[9px] w-full">
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-[8px] font-bold text-slate-400 uppercase mb-1 italic">Фото Чека</label>
+                        <input type="file" name="file_check" class="text-[9px] w-full">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 text-white p-5 rounded-xl font-black uppercase shadow-lg border-b-4 border-emerald-800">Отправить отчет</button>
+            </form>
+        </div>
+
+        <div id="expense" class="tab-content bg-white p-6 rounded-2xl shadow-2xl border-t-8 border-indigo-900">
+            <h2 class="text-lg font-black mb-4 text-indigo-950 uppercase border-b pb-2 text-center italic">💰 Расход</h2>
+            <form onsubmit="handleSubmit(event, 'expense')">
+                <div class="mb-4">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Дата расхода *</label>
+                    <input type="date" name="report_date" class="w-full p-2 bg-slate-50 border rounded font-bold text-sm date-picker">
+                </div>
+
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Город *</label>
+                <select name="city" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 font-bold text-sm" required>
+                    <option value="">Выбрать город...</option><option>ОБЩИЙ</option>
+                    <option>Кемерово</option><option>Новосибирск</option><option>Красноярск</option><option>Барнаул</option><option>Омск</option><option>Самара</option><option>Томск</option><option>Нижневартовск</option><option>Саранск</option><option>Псков</option><option>Брянск</option><option>Ярославль</option><option>Пенза</option><option>Санкт-Петербург</option>
+                </select>
+
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Категория</label>
+                <select name="category" id="expCategory" onchange="toggleExpenseFields()" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 font-bold text-sm">
+                    <option>Расходники</option><option>Запчасти</option><option>Инструменты</option><option>Доставка СДЭК</option><option>Печать договоров</option><option>Оплата интернета</option><option>Аренда</option><option>Зарплата</option><option>Другое (вручную)</option>
+                </select>
+
+                <div id="detailBlock" class="mb-4">
+                    <label class="block text-[10px] font-black text-indigo-600 uppercase mb-1 italic font-bold tracking-tight">Тип расхода (детализация) *</label>
+                    <input type="text" name="details" placeholder="Что именно куплено?" class="w-full p-3 bg-indigo-50 border rounded-lg font-bold text-sm outline-none">
+                </div>
+
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Источник оплаты</label>
+                <select name="payment_source" id="expSource" onchange="toggleExpenseFields()" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 font-bold text-sm">
+                    <option>Наличные сервиса</option><option>Точка банк</option><option>Свои (мастеру к возврату)</option><option>Андрей</option>
+                </select>
+
+                <div id="masterBlock" class="hidden-field mb-4">
+                    <label class="block text-[10px] font-black text-rose-600 uppercase mb-1 italic font-bold">Фамилия мастера (для возврата) *</label>
+                    <input type="text" name="master_name" placeholder="Иванов И.И." class="w-full p-3 bg-rose-50 border rounded-lg font-bold text-sm outline-none">
+                </div>
+
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Сумма ₽ *</label>
+                <input type="number" name="amount" placeholder="0" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 text-xl font-black italic" required>
+                
+                <label class="block text-[8px] font-bold text-slate-400 uppercase mb-1 italic">Фото чека</label>
+                <input type="file" name="expense_check" class="text-[10px] mb-6">
+
+                <button type="submit" class="w-full bg-indigo-900 text-white p-5 rounded-xl font-black uppercase shadow-lg border-b-4 border-indigo-950">Записать расход</button>
+            </form>
+        </div>
+
+        <div id="income" class="tab-content bg-white p-6 rounded-2xl shadow-2xl border-t-8 border-amber-500">
+            <h2 class="text-lg font-black mb-4 text-amber-950 uppercase border-b pb-2 text-center italic">📦 Приход на склад</h2>
+            <form onsubmit="handleSubmit(event, 'income')">
+                <div class="mb-4">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1 italic">Дата прихода *</label>
+                    <input type="date" name="report_date" class="w-full p-2 bg-slate-50 border rounded font-bold text-sm date-picker">
+                </div>
+                <select name="city" class="w-full p-3 bg-slate-50 border rounded-lg mb-4 font-bold text-sm" required>
+                    <option value="">Выбрать склад...</option>
+                    <option>Кемерово</option><option>Новосибирск</option><option>Красноярск</option><option>Барнаул</option><option>Омск</option><option>Самара</option><option>Томск</option><option>Нижневартовск</option><option>Саранск</option><option>Псков</option><option>Брянск</option><option>Ярославль</option><option>Пенза</option><option>Санкт-Петербург</option>
+                </select>
+                <div class="flex gap-2 mb-4">
+                    <button type="button" onclick="setIncomeMode('manual')" id="btnInManual" class="flex-1 py-2 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase">Вручную</button>
+                    <button type="button" onclick="setIncomeMode('ai')" id="btnInAi" class="flex-1 py-2 rounded-lg bg-slate-100 text-slate-400 text-[10px] font-black uppercase italic">📸 AI Файлом</button>
+                </div>
+                <div id="incomeManualBlock">
+                    <div id="incomeList"></div>
+                    <button type="button" onclick="addIncomeRow()" class="w-full py-2 bg-amber-50 border border-dashed border-amber-200 text-amber-700 text-[10px] font-black uppercase mb-4">+ Позиция</button>
+                </div>
+                <div id="incomeAiBlock" class="hidden-field"><input type="file" name="income_ai_file" class="text-[10px] w-full mb-4"></div>
+                <input type="hidden" name="income_mode" id="incomeMode" value="manual">
+                <button type="submit" class="w-full bg-amber-600 text-white p-5 rounded-xl font-black uppercase shadow-lg border-b-4 border-amber-800">Загрузить на склад</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = 'ТВОЙ_URL';
+        const ADMIN_PASS = 'BB-Admin-99x';
+
+        document.querySelectorAll('.date-picker').forEach(p => p.value = new Date().toISOString().split('T')[0]);
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Логика Админ-панели (Вход и Выход)
+        function toggleAdmin() {
+            const body = document.body;
+            const btn = document.getElementById('adminLockBtn');
+            
+            if (body.classList.contains('admin-active')) {
+                // Логика ВЫХОДА
+                body.classList.remove('admin-active');
+                btn.innerText = '🔓';
+                btn.classList.replace('bg-rose-600', 'bg-slate-300');
+                btn.classList.replace('text-white', 'text-slate-900');
+                showTab('repair');
+            } else {
+                // Логика ВХОДА
+                if (prompt("Пароль администратора:") === ADMIN_PASS) {
+                    body.classList.add('admin-active');
+                    btn.innerText = '🔒 Выйти';
+                    btn.classList.replace('bg-slate-300', 'bg-rose-600');
+                    btn.classList.add('text-white');
+                }
+            }
+        }
+
+        function addToHomeScreen() {
+            alert("Чтобы добавить BikeBis на рабочий стол:\n\n1. Нажмите кнопку 'Поделиться' (квадрат со стрелкой вверх внизу или три точки сверху).\n2. Выберите 'На экран «Домой»'.");
+        }
+
+        function toggleWarranty() {
+            const isW = document.getElementById('warrantyCheck').checked;
+            document.getElementById('repair').classList.toggle('warranty-active', isW);
+            const pb = document.getElementById('payTypeBlock');
+            pb.style.opacity = isW ? "0.3" : "1";
+            pb.style.pointerEvents = isW ? "none" : "auto";
+            if(isW) { document.getElementById('payTypeSelect').value = "Гарантия"; }
+        }
+
+        function addPartRow() {
+            const div = document.createElement('div');
+            div.className = 'part-row';
+            div.innerHTML = `<input type="text" name="part_name[]" placeholder="Деталь или услуга" class="w-full p-2 mb-2 text-xs border rounded font-bold" required>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-[7px] font-black uppercase opacity-50">Запчасть ₽</label><input type="number" name="part_price[]" oninput="calc()" class="w-full p-2 text-xs border rounded font-bold price-p" value="0"></div>
+                    <div><label class="text-[7px] font-black uppercase opacity-50">Работа ₽</label><input type="number" name="work_price[]" oninput="calc()" class="w-full p-2 text-xs border rounded font-bold price-w" value="0"></div>
+                </div><button type="button" onclick="this.parentElement.remove();calc();" class="text-[8px] text-red-500 font-bold mt-1 uppercase">✕ Удалить</button>`;
+            document.getElementById('partsList').appendChild(div);
+        }
+
+        function addIncomeRow() {
+            const div = document.createElement('div');
+            div.className = 'income-row';
+            div.innerHTML = `<input type="text" name="part_name[]" placeholder="Запчасть" class="w-full p-2 mb-2 text-xs border rounded font-bold" required>
+                <div class="grid grid-cols-2 gap-2"><input type="number" name="part_qty[]" placeholder="Кол-во" class="p-2 text-xs border rounded font-bold" required><input type="number" name="part_cost[]" placeholder="Закуп ₽/шт" class="p-2 text-xs border rounded font-bold"></div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-[8px] text-red-500 font-bold mt-1 uppercase">✕</button>`;
+            document.getElementById('incomeList').appendChild(div);
+        }
+
+        function toggleExpenseFields() {
+            const s = document.getElementById('expSource').value;
+            document.getElementById('masterBlock').style.display = (s === 'Свои (мастеру к возврату)') ? 'block' : 'none';
+        }
+
+        function setIncomeMode(m) {
+            document.getElementById('incomeMode').value = m;
+            document.getElementById('incomeManualBlock').style.display = m==='manual'?'block':'none';
+            document.getElementById('incomeAiBlock').style.display = m==='ai'?'block':'none';
+            document.getElementById('btnInManual').className = m==='manual'?'flex-1 py-2 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase':'flex-1 py-2 rounded-lg bg-slate-100 text-slate-400 text-[10px] font-black uppercase';
+            document.getElementById('btnInAi').className = m==='ai'?'flex-1 py-2 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase italic shadow-inner':'flex-1 py-2 rounded-lg bg-slate-100 text-slate-400 text-[10px] font-black uppercase italic';
+        }
+
+        function calc() {
+            let t = 0;
+            document.querySelectorAll('.price-p, .price-w').forEach(i => t += Number(i.value));
+            document.getElementById('total_sum_display').innerText = t;
+            document.getElementById('total_sum_hidden').value = t;
+        }
+
+        async function handleSubmit(event, type) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerText = 'ОТПРАВКА...';
+            const formData = new FormData(event.target);
+            formData.append('form_type', type);
+            formData.append('is_warranty', document.getElementById('warrantyCheck')?.checked || false);
+            try {
+                const response = await fetch(WEBHOOK_URL, { method: 'POST', body: formData });
+                if (response.ok) { alert('✅ Отправлено!'); location.reload(); }
+                else { alert('❌ Ошибка сервера'); }
+            } catch (e) { alert('❌ Ошибка сети!'); }
+            finally { btn.disabled = false; btn.innerText = 'ОТПРАВИТЬ'; }
+        }
+
+        addPartRow(); addIncomeRow();
+    </script>
+</body>
+</html>
